@@ -155,6 +155,24 @@ summary(ipd_train)
 ```
 
 Now, it's your turn ...
+```{r initial ggplots}
+
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges))
+
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
+
+ggplot(data = ipd_train) + geom_point(aes(x = Total_Charges, y = Total_Costs))
+
+ggplot(data = ipd_train) + geom_point(aes(x = Total_Charges, y = Total_Costs)) + 
+  facet_wrap(~Payment_Typology_1)
+
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, fill = APR_Severity_of_Illness_Desc))
+
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
+
+
+
+```
 
 
 
@@ -170,7 +188,7 @@ of the absolute value of the residuals for a fitted model.
 **QUESTION:** What might be an advantage of using median absolute deviation instead
 of mean absolute deviation?
 
-The possible advantage of median absolute deviation over mean absolute 
+**ANSWER:** The possible advantage of median absolute deviation over mean absolute 
 deviation is that outliers have less of an affect on median absolute deviation. 
 
 Obviously we want models with lower MAD values. Our ultimate goal is to create
