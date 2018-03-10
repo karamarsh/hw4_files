@@ -170,6 +170,9 @@ of the absolute value of the residuals for a fitted model.
 **QUESTION:** What might be an advantage of using median absolute deviation instead
 of mean absolute deviation?
 
+The possible advantage of median absolute deviation over mean absolute 
+deviation is that outliers have less of an affect on median absolute deviation. 
+
 Obviously we want models with lower MAD values. Our ultimate goal is to create
 a model that predicts well on the test dataset, `ipd_test`.
 
