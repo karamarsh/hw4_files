@@ -100,7 +100,9 @@ script.
 ### Load the data
 
 ```{r explore_str}
-load("./data/ipd_resp.RData")
+#load("./data/ipd_resp.RData")
+
+load('ipd_resp.RData')
 #str(ipd_resp)
 ```
 ## Step 4 - Partition into training and test sets
@@ -148,6 +150,7 @@ frames that we are using for this assignment. So, no need to worry about that.**
 ```{r}
 library(dplyr)
 library(ggplot2)
+library(coefplot)
 ```
 
 ```{r}
@@ -157,23 +160,121 @@ summary(ipd_train)
 Now, it's your turn ...
 ```{r initial ggplots}
 
-ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges))
+#ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges))
 
-ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
+# Histogram of Response/Output Variable 
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges), binwidth = 30000, fill = "steelblue", colour="Black") 
 
-ggplot(data = ipd_train) + geom_point(aes(x = Total_Charges, y = Total_Costs))
+# Histogram of Predictor1/Input Numeric Variable1
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs), binwidth = 30000, fill = "orange", colour="Black")
 
-ggplot(data = ipd_train) + geom_point(aes(x = Total_Charges, y = Total_Costs)) + 
+# Histogram of Predictor2/Input Numeric Variable2
+ggplot(data = ipd_train) + geom_histogram(aes(x = Length_of_Stay), fill = "violet", colour="Black")
+
+# Scatterplots of Total_Charges vs Total_Costs
+ggplot(data = ipd_train) + geom_point(aes(y = log(Total_Charges), x = log(Total_Costs))) 
+
+# Scatterplots of Total_Charges vs Length_of_Stay
+ggplot(data = ipd_train) + geom_point(aes(y = Total_Charges, x = Length_of_Stay))
+
+# Scatterplots of Total_Charges vs Total_Costs faceted along Payment_Typology_1
+ggplot(data = ipd_train) + geom_point(aes(y = Total_Charges, x = Total_Costs)) + 
   facet_wrap(~Payment_Typology_1)
 
-ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, fill = APR_Severity_of_Illness_Desc))
+# Scatterplots of Total_Charges vs Total_Costs faceted along Health_Service_Area
+ggplot(data = ipd_train) + geom_point(aes(y = Total_Charges, x = Total_Costs, col = Health_Service_Area)) + 
+  facet_wrap(~Health_Service_Area)
 
-ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
+# Scatterplots of Total_Charges vs Total_Costs faceted along Age_Group
+ggplot(data = ipd_train) + geom_point(aes(y = Total_Charges, x = Total_Costs, col = Age_Group)) + 
+  facet_wrap(~Age_Group)
 
+# Scatterplots of Total_Charges vs Total_Costs faceted along Type_of_Admission
+ggplot(data = ipd_train) + geom_point(aes(y = Total_Charges, x = Total_Costs, col = Type_of_Admission)) + 
+  facet_wrap(~Type_of_Admission)
 
+# Histograms of Total_Charges along Patient_Disposition 
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 30000, fill = Patient_Disposition)) + scale_x_log10()
+
+# Histograms of Total_Charges along Hospital_County 
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 3000000, fill = Hospital_County)) + scale_x_log10()
+
+# Histograms of Total_Charges along APR_Severity_of_Illness_Desc  
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 300000, fill = APR_Severity_of_Illness_Desc)) + scale_x_log10() 
+
+# Histograms of Total_Charges along APR_Risk_of_Mortality
+ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 300000, fill = APR_Risk_of_Mortality)) + scale_x_log10()
+
+#ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
 
 ```
 
+
+
+```{r}
+# Model Building to Understand the effect of the Predictors on the Response Variable 
+TotalCharges1 <- lm(Total_Charges ~ Total_Costs + Age_Group + Gender + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Patient_Disposition + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train)
+
+summary(TotalCharges1)
+
+# Compute the MAD value
+median(abs(TotalCharges1$residuals))
+```
+As, we can see that Gender is not significant. Let's try to fit our Model a little better
+
+```{r}
+# Model Building to Understand the effect of the Predictors on the Response Variable 
+TotalCharges2 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Patient_Disposition + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train)
+
+summary(TotalCharges2)
+
+# Compute the MAD value
+median(abs(TotalCharges2$residuals))
+```
+
+Since, majority of the Co-efficients for the Patient_Disposition consists of an insignificant p-value. Let's try to fit the Model and check the MAD to check if removing the Predictor Patient_Disposition will be a good idea.  
+```{r}
+# Model Building to Understand the effect of the Predictors on the Response Variable 
+TotalCharges3 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train)
+
+summary(TotalCharges3)
+
+# Compute the MAD value
+median(abs(TotalCharges3$residuals))
+```
+Yup, looks like MAD value did get reduced. 
+
+```{r}
+# Model Building to Understand the effect of the Predictors on the Response Variable 
+TotalCharges4 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train)
+
+summary(TotalCharges4)
+
+#lm(dependent ~ factor(independent1, exclude=c('b','d')) + independent2)
+
+# Compute the MAD value
+median(abs(TotalCharges4$residuals))
+```
+
+
+```{r}
+# Printing only the Significant Co-efficients
+ss <- coef(summary(TotalCharges4))
+ss_sig <- ss[ss[,"Pr(>|t|)"]<0.05,]
+printCoefmat(ss_sig)
+```
+
+
+
+```{r}
+# Model Coefficients
+TotalCharges3$coefficients
+```
+
+```{r}
+# Coefficient Plot
+coefplot(TotalCharges3)
+```
 
 
 
