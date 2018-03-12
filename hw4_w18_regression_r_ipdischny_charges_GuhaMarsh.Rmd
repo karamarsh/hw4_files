@@ -151,7 +151,11 @@ frames that we are using for this assignment. So, no need to worry about that.**
 library(dplyr)
 library(ggplot2)
 library(coefplot)
+library(reshape2)
+library(scales)
+library("GGally")
 ```
+
 
 ```{r}
 summary(ipd_train)
@@ -220,7 +224,7 @@ summary(TotalCharges1)
 # Compute the MAD value
 median(abs(TotalCharges1$residuals))
 ```
-As, we can see that Gender is not significant. Let's try to fit our Model a little better
+As, we can see that Gender is not significant. Let's try to fit our Model a little better, by removing the Predictor Gender
 
 ```{r}
 # Model Building to Understand the effect of the Predictors on the Response Variable 
@@ -245,16 +249,54 @@ median(abs(TotalCharges3$residuals))
 Yup, looks like MAD value did get reduced. 
 
 ```{r}
-# Model Building to Understand the effect of the Predictors on the Response Variable 
-TotalCharges4 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train)
+# Model Building to Understand the effect of the Predictors on the Response Variable, by removing APR_DRG_Desc for viewing the Correlation Matrix 
+TotalCharges4 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc, data = ipd_train)
 
 summary(TotalCharges4)
-
-#lm(dependent ~ factor(independent1, exclude=c('b','d')) + independent2)
 
 # Compute the MAD value
 median(abs(TotalCharges4$residuals))
 ```
+
+But after removing the APR_DRG_Desc the MAD got significantly increased. Hence removing the Predictor APR_DRG_Desc might not be a good idea. So apparently our Model TotalCharges3 is still going strong. 
+
+```{r}
+# Correlation Matrix
+head(ipd_train)
+str(ipd_train)
+```
+
+```{r}
+cor(ipd_train$Total_Charges, ipd_train$Total_Costs)
+cor(ipd_train$Total_Charges, ipd_train$Length_of_Stay)
+
+
+# Selecting Just the Numeric to Build the Correlation Matrix
+correlationbuild1 <- ipd_train %>%
+  select(Facility_Name, Length_of_Stay, Total_Charges, Total_Costs)
+
+head(correlationbuild1)
+
+# Correlation Matrix
+cor(correlationbuild1[, c(2, 3:4)])
+
+# Putting the Correlation Matrix in a Dataframe
+ipdtrainCor <- cor(correlationbuild1[, c(2, 3:4)])
+
+# Melting the Data for ease of plotting
+correlationbuild1Melt <- melt(ipdtrainCor, varnames=c("x", "y"), value.name = "Correlation")
+
+# Ordering the Correlation According to their Value
+correlationbuild1Melt <- correlationbuild1Melt[order(correlationbuild1Melt$Correlation), ]
+
+# Display the Melted Data
+correlationbuild1Melt
+
+# Heatmap of Correlation For Numerical Predictors
+ggplot(correlationbuild1Melt, aes(x=x, y=y)) + geom_tile(aes(fill=Correlation)) + scale_fill_gradient2(low = muted("red"), mid = "white", high = "violet", guide = guide_colorbar(ticks = FALSE, barheight = 10), limits=c(-1, 1)) + theme_minimal() + labs(x=NULL, y = NULL)
+
+```
+
 
 
 ```{r}
