@@ -214,23 +214,6 @@ ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 3000
 ```
 
 
-```{r}
-# Printing only the Significant Co-efficients
-# ss <- coef(summary(TotalCharges4))
-# ss_sig <- ss[ss[,"Pr(>|t|)"]<0.05,]
-# printCoefmat(ss_sig)
-```
-
-
-
-### Model Diagnostics
-```{r}
-# Coefficient Plot
-#coefplot(TotalCharges6)
-
-```
-
-
 ## Step 6 - Building and evaluation of predictive models
 
 Now that you know a little more about the data, it's time to start building a
@@ -453,7 +436,8 @@ totalCharges9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_
 summary(totalCharges9)
 
 # Compute the MAD value
-median(abs(totalCharges9$residuals))
+madA9 <- median(abs(totalCharges9$residuals))
+madA9
 ```
 
 In this Model, we tried to see the interaction amongst the patients' Length_of_Stay, the Health_Service_Area, and the Total_Costs along with the interaction between the Type_of_Admission and the Payment_Typology_1. Some of the other Predictors that we considered for building this Models are patients' Age_Group, APR_Severity_of_Illness_Desc, and APR_Risk_of_Mortality.
@@ -468,7 +452,8 @@ totalCharges10 <- lm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Tota
 summary(totalCharges10)
 
 # Compute the MAD value
-median(abs(totalCharges10$residuals))
+madA10 <- median(abs(totalCharges10$residuals))
+madA10
 ```
 
 Since most of the health insurance charges depends on patients' age, so we wanted to see the interaction between the Payment_Typology_1 * Age_Group. Not surprisingly we see that our Model Fit just got even more better, with the least MAD so far of about 5887.513.
@@ -516,7 +501,8 @@ totalCharges13 <- lm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Servi
 summary(totalCharges13)
 
 # Compute the MAD value
-median(abs(totalCharges13$residuals))
+madA13 <- median(abs(totalCharges13$residuals))
+madA13
 ```
 
 Apparently Model 13 is our best Model with the least of MAD of about 5745.559! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics.
@@ -586,7 +572,7 @@ coefplot(totalCharges9,predictors=c("Health_Service_Area","Length_of_Stay"))
 # totalChargesG1 <- glm(Total_Charges ~ Total_Costs + Age_Group + Gender + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Patient_Disposition + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_train, family=gaussian(link="identity"))
 ```
 
-Let's check if this gives the same results as lm. No they don't!
+Let's check if this gives the same results as lm. No they don't! Therefore we need to use family=gaussian(link="identity") for building all of our rest of our Models
 ```{r}
 # identical(coef(totalCharges1), coef(totalChargesG1))
 ```
@@ -677,6 +663,7 @@ cvResults <- as.data.frame(rbind(totalChargesCV9$delta, totalChargesCV10$delta, 
 # Cleaning up the data to make them more representable with better column names
 ```{r}
 names(cvResults) <- c("Error", "Adjusted Error")
+cvResults$Model <- sprintf("totalChargesG%s",9:13)
 cvResults
 ```
 Since, while running the k-crossfold validation we identified that our glm and lm were not equal and hence it makes sense that this time we are getting our Top 3 Models different. The lower the error, the better the Model Fit. Hence, according to k-crossfold validation, our Top 3 Models are: 
@@ -785,7 +772,7 @@ data, the MAD on the test data was 7335.559. Notice that MAD for test is
 higher than MAD for train.
 
 ## Top Predictive Models
-# Top 1 Predictive Model, MAD: 5771.55
+# Top 1 Predictive Model, Test MAD: 5771.55
 ```{r}
 # Top 1 Predictive Model, based on Model 13 of Train Data
 totalChargesPredict13 <- lm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Service_Area + Payment_Typology_1 * Type_of_Admission + Age_Group, data = ipd_test)
@@ -793,11 +780,12 @@ totalChargesPredict13 <- lm(Total_Charges ~ Total_Costs * Length_of_Stay * Healt
 summary(totalChargesPredict13)
 
 # Compute the MAD value
-median(abs(totalChargesPredict13$residuals))
+madP13 <- median(abs(totalChargesPredict13$residuals))
+madP13
 ```
 
 
-# Top 2 Predictive Model, MAD: 5839.624
+# Top 2 Predictive Model, Test MAD: 5839.624
 ```{r}
 # Top 2 Predictive Model, based on Model 10 of Train Data
 totalChargesPredict10 <- lm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission +  Payment_Typology_1 * Age_Group + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
@@ -805,11 +793,12 @@ totalChargesPredict10 <- lm(Total_Charges ~ Health_Service_Area * Length_of_Stay
 summary(totalChargesPredict10)
 
 # Compute the MAD value
-median(abs(totalChargesPredict10$residuals))
+madP10 <- median(abs(totalChargesPredict10$residuals))
+madP10
 ```
 
 
-# Top 3 Predictive Model, MAD: 5922.874
+# Top 3 Predictive Model, Test MAD: 5922.874
 ```{r}
 # Top 3 Predictive Model, based on Model 9 of Train Data
 totalChargesPredict9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
@@ -817,28 +806,180 @@ totalChargesPredict9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Len
 summary(totalChargesPredict9)
 
 # Compute the MAD value
-median(abs(totalChargesPredict9$residuals))
+madP9 <- median(abs(totalChargesPredict9$residuals))
+madP9
 ```
-
 
 
 **QUESTION:** Do you think it's typical that MAD for test would be higher than
 MAD for train? Why or why not?
 
+In this case, we can clearly see that the MAD for test data is higher for the MAD value of our train data for our first top Model, Model 13. However, it might not be the case always as we can see in case of our next Models, Model 10 and Model 9 whereby MAD for train data is higher than that of the test data indicating a possibility of Model Overfitting. If there is inherent variability in the dataset as seen in our Correlation Matrix & Residual Analysis plot above then the MAD for test data will be usually higher than that of the MAD for train data. 
+
+
 **QUESTION:** Which of your top 3 models had the lowest MAD for the test data? 
+
+The Top 3 Models with the MAD for train and test data are as follows, with MAD values in ascending order:
+1. Model 13, Train MAD: 5745.559, Test MAD: 5777.55
+2. Model 10, Train MAD: 5887.513, Test MAD: 5839.624
+3. Model 9, Train MAD: 5932.954, Test MAD: 5922.874
+
+So, clearly our Model 10 & Model 9 has the lower MAD for the test data. And Model 10 has the lowest MAD for the test data.
+
 
 **QUESTION:** How do the MAD values for the test data compare to the MAD values
 for the training data?
 
+For comapring the MAD values for the test data to the MAD values of the training data, included all the other Models except the Top 3, which are already done above. 
 
+# Model 1, Test MAD: 7630.359
+```{r}
+# # Predictive Model, based on Model 1 of Train Data
+# totalChargesPredict1 <- lm(Total_Charges ~ Total_Costs + Age_Group + Gender + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Patient_Disposition + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict1)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict1$residuals))
+```
+
+# Model 2, Test MAD: 7630.538
+```{r}
+# # Model 2: Build to Understand the effect of the Predictors on the Response Variable
+# totalChargesPredict2 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Patient_Disposition + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict2)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict2$residuals))
+```
+
+# Model 3, Test MAD: 7627.171
+```{r}
+# # Model 3: Build to Understand the effect of the Predictors on the Response Variable
+# totalChargesPredict3 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc + APR_DRG_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict3)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict3$residuals))
+```
+
+# Model 4, Test MAD: 7705.694
+```{r}
+# # Model 4: Build to Understand the effect of the Predictors on the Response Variable, by removing APR_DRG_Desc for viewing the Correlation Matrix
+# totalChargesPredict4 <- lm(Total_Charges ~ Total_Costs + Age_Group + Health_Service_Area + Race + Ethnicity + Length_of_Stay + Type_of_Admission + Payment_Typology_1 + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict4)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict4$residuals))
+```
+
+# Model 5, Test MAD: 7640.95
+```{r}
+# # Model 5: Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & considering the Predictors  Total_Costs, Length_of_Stay, Health_Service_Area, Type_of_Admission, Payment_Typology_1, and Age_Group by removing the other Predictors for Model Fitting
+# 
+# totalChargesPredict5 <- lm(Total_Charges ~ Total_Costs + Length_of_Stay + Health_Service_Area + Type_of_Admission + Payment_Typology_1 + Age_Group, data = ipd_test)
+# 
+# summary(totalChargesPredict5)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict5$residuals))
+# 
+# # Model Visualization
+# coefplot(totalChargesPredict5)
+# 
+# # Model Visualization Considering Removing Some Insignificant Predictors
+# coefplot(totalChargesPredict5,predictors=c("Length_of_Stay","Total_Costs", "Health_Service_Area", "Type_of_Admission", "Payment_Typology_1"))
+```
+
+## Additive Models
+# Model 6, Test MAD: 7618.097
+```{r}
+# # Model 6: Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & introducing the interaction terms Length_of_Stay * Payment_Typology_1 for Model Fitting
+# 
+# totalChargesPredict6 <- lm(Total_Charges ~ Total_Costs  + Age_Group + Health_Service_Area + Length_of_Stay * Payment_Typology_1 + Type_of_Admission + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict6)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict6$residuals))
+```
+
+# Model 7, Test MAD: 7486.655
+```{r}
+# # Model 7: Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & introducing the interaction terms Length_of_Stay * Payment_Typology_1 * Total_Costs for Model Fitting.
+# 
+# totalChargesPredict7 <- lm(Total_Charges ~ Age_Group + Health_Service_Area + Length_of_Stay * Payment_Typology_1 * Total_Costs +  Type_of_Admission + APR_Risk_of_Mortality + APR_Severity_of_Illness_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict7)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict7$residuals))
+```
+
+# Model 8, Test MAD: 7501.213
+```{r}
+# # Model 8: Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & introducing the interaction terms Length_of_Stay * Payment_Typology_1 * Total_Costs along with Type_of_Admission * APR_Severity_of_Illness_Desc for Model Fitting.
+# 
+# totalChargesPredict8 <- lm(Total_Charges ~ Age_Group + Health_Service_Area + Length_of_Stay * Payment_Typology_1 * Total_Costs + Type_of_Admission * APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# 
+# summary(totalChargesPredict8)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict8$residuals))
+```
+
+# Model 11, Test MAD: 6366.077
+```{r}
+# # Model 11 (Best One So Far) : Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & introducing the interaction terms Health_Service_Area * Length_of_Stay for Model Fitting
+# 
+# totalChargesPredict11 <- lm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# 
+# summary(totalChargesPredict11)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict11$residuals))
+# 
+# # Model Visualization
+# coefplot(totalChargesPredict11)
+# 
+# # Model Visualization Considering only the Numeric Predictors
+# coefplot(totalChargesPredict11,predictors=c("Length_of_Stay","Total_Costs"))
+```
+
+# Model 12, Test MAD: 6358.837
+```{r}
+# # Model 12: Build to Understand the effect of the Predictors on the Response Variable, by removing Race, Ethnicity, & introducing the interaction terms Health_Service_Area * Length_of_Stay and removing the Predictor APR_Risk_of_Mortality for Model Fitting
+# 
+# totalChargesPredict12 <- lm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc, data = ipd_test)
+# 
+# summary(totalChargesPredict12)
+# 
+# # Compute the MAD value
+# median(abs(totalChargesPredict12$residuals))
+```
+
+Across all the 13 Models, the MAD values for the test data are comparatively higher than the MAD values of the train data, except for Model 10 and Model 9 where MAD for train data is higher than that of the test data.
+
+            
 Finally, create some sort of plot which shows the MAD values for both 
 train and test for your top 3 models. One plot.
 
+```{r}
+# multiplot(totalCharges13$madA13, totalChargesPredict13$madP13)
+
+#, madA9, madP9, madA10, madP10)
+```
+
+
 ### Your top model
 
-Show your top performing model and discuss whether the model appears to make
-sense in terms of the variables included. Why did you choose the variables you
-did?
+Show your top performing model and discuss whether the model appears to make sense in terms of the variables included. Why did you choose the variables you did?
+
+Apparently Model 13 is our best Model with the least MAD of about **5745.559**! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. We decided to see the interactions amongst these terms mainly due to the fact that from our EDA over the data we saw that Total_Charges showed significant relationship with the patients' Length_of_Stay along with the Health_Service_Area where the services are being provided. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics. We haven't considered race, ethnicity mainly because our Model was not showing them to be significant while we were building the Models with the train data. Additionally, we also realized that APR_DRG_Desc is a much more clinical way of naming the diseases as described under CCS_Dx_Desc. So in the initial plots we first removed CCS_Dx_Desc to see if there was any significant relationship and then we removed APR_DRG_Desc, because it wasn't showing any significant relationship either. Both of these two Predictors were insignificant probably due to the fact that we have considered to predict the Total_Charges based on patients' data related to Respiratory diseases only. And, hence the decision to remove them from our Model consideration. Initially we thought that Payment_Typology_1 could be a significant Predictor as well, but as we were building the Models, we realized that they are not significant probably due to the fact that most of the Insurance companies are more or less following the same market regulations and policy laid down by the Government, while charging for patients' respiratory diseases to ensure there is no market monopoly. 
+
 
 It will be interesting to compare the best models that everyone finds.
 
