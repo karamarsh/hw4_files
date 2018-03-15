@@ -100,9 +100,9 @@ script.
 ### Load the data
 
 ```{r explore_str}
-load("./data/ipd_resp.RData")
+#load("./data/ipd_resp.RData")
 
-#load('ipd_resp.RData')
+load('ipd_resp.RData')
 #str(ipd_resp)
 ```
 ## Step 4 - Partition into training and test sets
@@ -154,18 +154,15 @@ library(coefplot)
 library(reshape2)
 library(scales)
 library(boot)
-
 ```
 
-
+# Checking the data prior to EDA 
 ```{r}
-summary(ipd_train)
+# summary(ipd_train)
 ```
 
 Now, it's your turn ...
 ```{r initial ggplots}
-
-#ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges))
 
 # Histogram of Response/Output Variable 
 ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges), binwidth = 30000, fill = "steelblue", colour="Black") 
@@ -210,8 +207,6 @@ ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 3000
 # Histograms of Total_Charges along APR_Risk_of_Mortality
 ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Charges, binwidth = 300000, fill = APR_Risk_of_Mortality)) + scale_x_log10()
 
-#ggplot(data = ipd_train) + geom_histogram(aes(x = Total_Costs))
-
 ```
 
 
@@ -242,10 +237,10 @@ be surprised that the best fit value for the y-intercept in this case is
 the mean of the response variable, `Total_Charges`.
 
 ```{r charges_null_model}
-charges_lm0 <- lm(Total_Charges ~ 1, data = ipd_train)
-summary(charges_lm0)
-# Compute the MAD value
-median(abs(charges_lm0$residuals))
+# charges_lm0 <- lm(Total_Charges ~ 1, data = ipd_train)
+# summary(charges_lm0)
+# # Compute the MAD value
+# median(abs(charges_lm0$residuals))
 ```
 
 It's not hard to create regression models with smaller MAD values than this. :)
@@ -260,8 +255,8 @@ the test data, I got a MAD of ... well, I'll tell you a little later.
 
 ```{r}
 # Correlation Matrix
-head(ipd_train)
-str(ipd_train)
+# head(ipd_train)
+# str(ipd_train)
 ```
 
 
@@ -477,7 +472,7 @@ coefplot(totalCharges11)
 coefplot(totalCharges11,predictors=c("Length_of_Stay","Total_Costs"))
 ```
 
-In this Model we wanted to see the interaction between the Length_of_Stay * Health_Service_Area only without considering the interaction of the Total_Costs. Looks like not including Total_Costs, caused our Model to have a greater MAD than the previous Model 10.
+In this Model we wanted to see the interaction between the Length_of_Stay * Health_Service_Area only without considering the interaction of the Total_Costs. Looks like not including Total_Costs, caused our Model to have a greater MAD than the previous Model 10. It also looks like Length_of_Stay is a significant Predictor along with the interaction terms Length_of_Stay and the Health_Service_Area, particularly if the Health_Service_Area is located in New York City, Long Island, and Hudson Valley, which makes sense since those areas are costly.
 
 # Model 12: MAD: 6121.064 
 ```{r}
@@ -515,15 +510,15 @@ to make predictions on the test dataset.
 ### My Top 3 Models are Model 13, Model 10 and Model 9 respectively
 
 
-## Top 1 Model: Model 13, MAD 5745.559
+## Top 1 Model: Model 13, Train MAD: 5745.559
 ```{r}
 # Top 1:- Model 13: MAD: 5745.559
 
 # Model Coefficients
 totalCharges13$coefficients
 
-# Model Visualization
-coefplot(totalCharges13)
+# Model Visualization (looks awful and hence commented out!)
+#coefplot(totalCharges13) 
 
 # Model Visualization Considering Probable Significant Predictors
 coefplot(totalCharges13,predictors=c("Length_of_Stay","Total_Costs"))
@@ -531,7 +526,7 @@ coefplot(totalCharges13,predictors=c("Length_of_Stay","Total_Costs"))
 coefplot(totalCharges13,predictors=c("Health_Service_Area","Length_of_Stay"))
 ```
 
-## Top 2 Model: Model 10, MAD: 5887.513
+## Top 2 Model: Model 10, Train MAD: 5887.513
 ```{r}
 # Top 2:- Model 10: MAD: 5887.513 
 
@@ -539,7 +534,7 @@ coefplot(totalCharges13,predictors=c("Health_Service_Area","Length_of_Stay"))
 totalCharges10$coefficients
 
 # Model Visualization
-coefplot(totalCharges10)
+#coefplot(totalCharges10)
 
 # Model Visualization Considering Probable Significant Predictors
 coefplot(totalCharges10,predictors=c("Length_of_Stay","Total_Costs"))
@@ -548,7 +543,7 @@ coefplot(totalCharges10,predictors=c("Health_Service_Area","Length_of_Stay"))
 ```
 
 
-## Top 3 Model: Model 9, MAD: 5932.954
+## Top 3 Model: Model 9, Train MAD: 5932.954
 ```{r}
 # Top 3:- Model 9: MAD: 5932.954
 
@@ -556,7 +551,7 @@ coefplot(totalCharges10,predictors=c("Health_Service_Area","Length_of_Stay"))
 totalCharges9$coefficients
 
 # Model Visualization
-coefplot(totalCharges9)
+#coefplot(totalCharges9)
 
 # Model Visualization Considering Probable Significant Predictors
 coefplot(totalCharges9,predictors=c("Length_of_Stay","Total_Costs"))
@@ -617,26 +612,24 @@ Checking the Error
 # totalChargesG8 <- glm(Total_Charges ~ Age_Group + Health_Service_Area + Length_of_Stay * Payment_Typology_1 * Total_Costs + Type_of_Admission * APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
 
 
-# Model 9
-totalChargesG9 <- glm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
-
-
-# Model 10
-totalChargesG10 <- glm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission +  Payment_Typology_1 * Age_Group + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
-
-
-# Model 11
-totalChargesG11 <- glm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
-
-
-# Model 12
-totalChargesG12 <- glm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc, data = ipd_train, family=gaussian(link="identity"))
-
-
-# Model 13
-totalChargesG13 <- glm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Service_Area + Payment_Typology_1 * Type_of_Admission + Age_Group, data = ipd_train, family=gaussian(link="identity"))
-
-
+# # Model 9
+# totalChargesG9 <- glm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
+# 
+# 
+# # Model 10
+# totalChargesG10 <- glm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission +  Payment_Typology_1 * Age_Group + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
+# 
+# 
+# # Model 11
+# totalChargesG11 <- glm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_train, family=gaussian(link="identity"))
+# 
+# 
+# # Model 12
+# totalChargesG12 <- glm(Total_Charges ~ Total_Costs + Length_of_Stay * Health_Service_Area + Payment_Typology_1 + Age_Group + Type_of_Admission + APR_Severity_of_Illness_Desc, data = ipd_train, family=gaussian(link="identity"))
+# 
+# 
+# # Model 13
+# totalChargesG13 <- glm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Service_Area + Payment_Typology_1 * Type_of_Admission + Age_Group, data = ipd_train, family=gaussian(link="identity"))
 ```
 
 
@@ -649,28 +642,28 @@ totalChargesG13 <- glm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Ser
 # totalChargesCV6 <- cv.glm(ipd_train, totalChargesG6, K=5)
 # totalChargesCV7 <- cv.glm(ipd_train, totalChargesG7, K=5)
 # totalChargesCV8 <- cv.glm(ipd_train, totalChargesG8, K=5)
-totalChargesCV9 <- cv.glm(ipd_train, totalChargesG9, K=5)
-totalChargesCV10 <- cv.glm(ipd_train, totalChargesG10, K=5)
-totalChargesCV11 <- cv.glm(ipd_train, totalChargesG11, K=5)
-totalChargesCV12 <- cv.glm(ipd_train, totalChargesG12, K=5)
-totalChargesCV13 <- cv.glm(ipd_train, totalChargesG13, K=5)
+# totalChargesCV9 <- cv.glm(ipd_train, totalChargesG9, K=5)
+# totalChargesCV10 <- cv.glm(ipd_train, totalChargesG10, K=5)
+# totalChargesCV11 <- cv.glm(ipd_train, totalChargesG11, K=5)
+# totalChargesCV12 <- cv.glm(ipd_train, totalChargesG12, K=5)
+# totalChargesCV13 <- cv.glm(ipd_train, totalChargesG13, K=5)
 ```
 
 # Checking the Error Results
 ```{r}
-cvResults <- as.data.frame(rbind(totalChargesCV9$delta, totalChargesCV10$delta, totalChargesCV11$delta, totalChargesCV12$delta, totalChargesCV13$delta))
+# cvResults <- as.data.frame(rbind(totalChargesCV9$delta, totalChargesCV10$delta, totalChargesCV11$delta, totalChargesCV12$delta, totalChargesCV13$delta))
 ```
 
 # Cleaning up the data to make them more representable with better column names
 ```{r}
-names(cvResults) <- c("Error", "Adjusted Error")
-cvResults$Model <- sprintf("totalChargesG%s",9:13)
-cvResults
+# names(cvResults) <- c("Error", "Adjusted Error")
+# cvResults$Model <- sprintf("totalChargesG%s",9:13)
+# cvResults
 ```
 Since, while running the k-crossfold validation we identified that our glm and lm were not equal and hence it makes sense that this time we are getting our Top 3 Models different. The lower the error, the better the Model Fit. Hence, according to k-crossfold validation, our Top 3 Models are: 
-1. Model 10
-2. Model 9
-3. Model 13
+** 1. Model 10 **
+** 2. Model 9 **
+** 3. Model 13 **
 
 
 ### Model diagnostics
@@ -689,7 +682,6 @@ modelTests <- data.frame(New_ActualCharges=ipd_train[,"Total_Charges"],
                           LM13_TotalCharges=predict(totalCharges13),
                           LM10_TotalCharges=predict(totalCharges10),
                           LM9_TotalCharges=predict(totalCharges9))
-modelTests 
 
 # Actual vs Fitted Values Scatterplots for the Top 3 Models
 ggplot(data=modelTests, aes(x=Total_Charges,y=LM13_TotalCharges)) + geom_point()
@@ -752,10 +744,10 @@ totalChargesPredict3 <- predict(totalCharges9, newdata=ipd_test, se.fit=TRUE,
                          interval="prediction", level=0.95)
 
 
-# Save relevant objects
-save(ipd_train,ipd_test,totalCharges13,totalCharges10,totalCharges9,
-     totalChargesPredict1,totalChargesPredict2,totalChargesPredict3,
-     file="totalChargesPredict123.rdata")
+# # Save relevant objects
+# save(ipd_train,ipd_test,totalCharges13,totalCharges10,totalCharges9,
+#      totalChargesPredict1,totalChargesPredict2,totalChargesPredict3,
+#      file="totalChargesPredict123.rdata")
 
 ```
 
@@ -786,7 +778,6 @@ higher than MAD for train.
 
 df1 <- abs(totalChargesPredict1$fit[,1]-ipd_test["Total_Charges"])
 (testMad13 <- median(as.numeric(df1$Total_Charges)))
-
 ```
 
 
@@ -808,7 +799,7 @@ df2 <- abs(totalChargesPredict2$fit[,1]-ipd_test["Total_Charges"])
 
 # Top 3 Predictive Model, Test MAD: 5888.697
 ```{r}
-# Top 3 Predictive Model, based on Model 9 of Train Data
+# # Top 3 Predictive Model, based on Model 9 of Train Data
 # totalChargesPredict9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
 # 
 # summary(totalChargesPredict9)
@@ -819,7 +810,6 @@ df2 <- abs(totalChargesPredict2$fit[,1]-ipd_test["Total_Charges"])
 
 df3 <- abs(totalChargesPredict3$fit[,1]-ipd_test["Total_Charges"])
 (testMad9 <- median(as.numeric(df3$Total_Charges)))
-
 ```
 
 
@@ -831,12 +821,12 @@ In this case, we can clearly see that the MAD for test data is higher for the MA
 
 **QUESTION:** Which of your top 3 models had the lowest MAD for the test data? 
 
-Model 13 has the lowest MAD value for the test Data.
-
 The Top 3 Models with the MAD for train and test data are as follows, with MAD values in ascending order:
-1. Model 13, Train MAD: 5745.559, Test MAD: 5752.152
+1. Model 13, Train MAD: 5745.559, Test MAD: 5777.55
 2. Model 10, Train MAD: 5887.513, Test MAD: 5856.165
 3. Model 9, Train MAD: 5932.954, Test MAD: 5888.697
+
+So, clearly our Model 13 which is our Top Model has the lowest MAD for the test data. Apart from Model 10 and Model 9, the MAD was greater for the test data for all other Models. 
 
 
 **QUESTION:** How do the MAD values for the test data compare to the MAD values
@@ -980,13 +970,12 @@ Finally, create some sort of plot which shows the MAD values for both
 train and test for your top 3 models. One plot.
 
 ```{r}
-
+# Plotting MAD values for both the train and test data Top 3 Models 
 trainMads = c(madA9, madA10, madA13)
 testMads = c(testMad9, testMad10, testMad13)
 df4 <- data.frame(trainMads, testMads)
 
-ggplot(data = df4) + geom_point(aes(x = trainMads, y = testMads))
-
+ggplot(data = df4) + geom_point(aes(x = trainMads, y = testMads), size = 3)
 ```
 
 
@@ -994,7 +983,7 @@ ggplot(data = df4) + geom_point(aes(x = trainMads, y = testMads))
 
 Show your top performing model and discuss whether the model appears to make sense in terms of the variables included. Why did you choose the variables you did?
 
-Apparently Model 13 is our best Model with the least MAD of about **5752.152**! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. We decided to see the interactions amongst these terms mainly due to the fact that from our EDA over the data we saw that Total_Charges showed significant relationship with the patients' Length_of_Stay along with the Health_Service_Area where the services are being provided. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics. We haven't considered race, ethnicity mainly because our Model was not showing them to be significant while we were building the Models with the train data. Additionally, we also realized that APR_DRG_Desc is a much more clinical way of naming the diseases as described under CCS_Dx_Desc. So in the initial plots we first removed CCS_Dx_Desc to see if there was any significant relationship and then we removed APR_DRG_Desc, because it wasn't showing any significant relationship either. Both of these two Predictors were insignificant probably due to the fact that we have considered to predict the Total_Charges based on patients' data related to Respiratory diseases only. And, hence the decision to remove them from our Model consideration. Initially we thought that Payment_Typology_1 could be a significant Predictor as well, but as we were building the Models, we realized that they are not significant probably due to the fact that most of the Insurance companies are more or less following the same market regulations and policy laid down by the Government, while charging for patients' respiratory diseases to ensure there is no market monopoly. 
+Apparently Model 13 is our best Model with the least MAD of about **5745.559**! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. We decided to see the interactions amongst these terms mainly due to the fact that from our EDA over the data we saw that Total_Charges showed significant relationship with the patients' Length_of_Stay along with the Health_Service_Area where the services are being provided. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics. We haven't considered race, ethnicity mainly because our Model was not showing them to be significant while we were building the Models with the train data. Additionally, we also realized that APR_DRG_Desc is a much more clinical way of naming the diseases as described under CCS_Dx_Desc. So in the initial plots we first removed CCS_Dx_Desc to see if there was any significant relationship and then we removed APR_DRG_Desc, because it wasn't showing any significant relationship either. Both of these two Predictors were insignificant probably due to the fact that we have considered to predict the Total_Charges based on patients' data related to Respiratory diseases only. And, hence the decision to remove them from our Model consideration. Initially we thought that Payment_Typology_1 could be a significant Predictor as well, but as we were building the Models, we realized that they are not significant probably due to the fact that most of the Insurance companies are more or less following the same market regulations and policy laid down by the Government, while charging for patients' respiratory diseases to ensure there is no market monopoly. 
 
 
 It will be interesting to compare the best models that everyone finds.
