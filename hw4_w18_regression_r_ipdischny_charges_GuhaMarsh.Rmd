@@ -153,10 +153,8 @@ library(ggplot2)
 library(coefplot)
 library(reshape2)
 library(scales)
-<<<<<<< HEAD
-=======
 library(boot)
->>>>>>> 9ae1915f379646bb32f683e377a0bde526f16aa4
+
 ```
 
 
@@ -775,42 +773,53 @@ data, the MAD on the test data was 7335.559. Notice that MAD for test is
 higher than MAD for train.
 
 ## Top Predictive Models
-# Top 1 Predictive Model, Test MAD: 5771.55
+# Top 1 Predictive Model, Test MAD: 5752.152
 ```{r}
-# Top 1 Predictive Model, based on Model 13 of Train Data
-totalChargesPredict13 <- lm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Service_Area + Payment_Typology_1 * Type_of_Admission + Age_Group, data = ipd_test)
+# # Top 1 Predictive Model, based on Model 13 of Train Data
+# totalChargesPredict13 <- lm(Total_Charges ~ Total_Costs * Length_of_Stay * Health_Service_Area + Payment_Typology_1 * Type_of_Admission + Age_Group, data = ipd_test)
+# 
+# summary(totalChargesPredict13)
+# 
+# # Compute the MAD value
+# madP13 <- median(abs(totalChargesPredict13$residuals))
+# madP13
 
-summary(totalChargesPredict13)
+df1 <- abs(totalChargesPredict1$fit[,1]-ipd_test["Total_Charges"])
+(testMad13 <- median(as.numeric(df1$Total_Charges)))
 
-# Compute the MAD value
-madP13 <- median(abs(totalChargesPredict13$residuals))
-madP13
 ```
 
 
-# Top 2 Predictive Model, Test MAD: 5839.624
+# Top 2 Predictive Model, Test MAD: 5856.165
 ```{r}
-# Top 2 Predictive Model, based on Model 10 of Train Data
-totalChargesPredict10 <- lm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission +  Payment_Typology_1 * Age_Group + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# # Top 2 Predictive Model, based on Model 10 of Train Data
+# totalChargesPredict10 <- lm(Total_Charges ~ Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission +  Payment_Typology_1 * Age_Group + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# 
+# summary(totalChargesPredict10)
+# 
+# # Compute the MAD value
+# madP10 <- median(abs(totalChargesPredict10$residuals))
+# madP10
 
-summary(totalChargesPredict10)
-
-# Compute the MAD value
-madP10 <- median(abs(totalChargesPredict10$residuals))
-madP10
+df2 <- abs(totalChargesPredict2$fit[,1]-ipd_test["Total_Charges"])
+(testMad10 <- median(as.numeric(df2$Total_Charges)))
 ```
 
 
-# Top 3 Predictive Model, Test MAD: 5922.874
+# Top 3 Predictive Model, Test MAD: 5888.697
 ```{r}
 # Top 3 Predictive Model, based on Model 9 of Train Data
-totalChargesPredict9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# totalChargesPredict9 <- lm(Total_Charges ~ Age_Group + Health_Service_Area * Length_of_Stay * Total_Costs + Type_of_Admission * Payment_Typology_1 + APR_Severity_of_Illness_Desc + APR_Risk_of_Mortality, data = ipd_test)
+# 
+# summary(totalChargesPredict9)
+# 
+# # Compute the MAD value
+# madP9 <- median(abs(totalChargesPredict9$residuals))
+# madP9
 
-summary(totalChargesPredict9)
+df3 <- abs(totalChargesPredict3$fit[,1]-ipd_test["Total_Charges"])
+(testMad9 <- median(as.numeric(df3$Total_Charges)))
 
-# Compute the MAD value
-madP9 <- median(abs(totalChargesPredict9$residuals))
-madP9
 ```
 
 
@@ -822,12 +831,12 @@ In this case, we can clearly see that the MAD for test data is higher for the MA
 
 **QUESTION:** Which of your top 3 models had the lowest MAD for the test data? 
 
-The Top 3 Models with the MAD for train and test data are as follows, with MAD values in ascending order:
-1. Model 13, Train MAD: 5745.559, Test MAD: 5777.55
-2. Model 10, Train MAD: 5887.513, Test MAD: 5839.624
-3. Model 9, Train MAD: 5932.954, Test MAD: 5922.874
+Model 13 has the lowest MAD value for the test Data.
 
-So, clearly our Model 10 & Model 9 has the lower MAD for the test data. And Model 10 has the lowest MAD for the test data.
+The Top 3 Models with the MAD for train and test data are as follows, with MAD values in ascending order:
+1. Model 13, Train MAD: 5745.559, Test MAD: 5752.152
+2. Model 10, Train MAD: 5887.513, Test MAD: 5856.165
+3. Model 9, Train MAD: 5932.954, Test MAD: 5888.697
 
 
 **QUESTION:** How do the MAD values for the test data compare to the MAD values
@@ -971,9 +980,13 @@ Finally, create some sort of plot which shows the MAD values for both
 train and test for your top 3 models. One plot.
 
 ```{r}
-# multiplot(totalCharges13$madA13, totalChargesPredict13$madP13)
 
-#, madA9, madP9, madA10, madP10)
+trainMads = c(madA9, madA10, madA13)
+testMads = c(testMad9, testMad10, testMad13)
+df4 <- data.frame(trainMads, testMads)
+
+ggplot(data = df4) + geom_point(aes(x = trainMads, y = testMads))
+
 ```
 
 
@@ -981,7 +994,7 @@ train and test for your top 3 models. One plot.
 
 Show your top performing model and discuss whether the model appears to make sense in terms of the variables included. Why did you choose the variables you did?
 
-Apparently Model 13 is our best Model with the least MAD of about **5745.559**! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. We decided to see the interactions amongst these terms mainly due to the fact that from our EDA over the data we saw that Total_Charges showed significant relationship with the patients' Length_of_Stay along with the Health_Service_Area where the services are being provided. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics. We haven't considered race, ethnicity mainly because our Model was not showing them to be significant while we were building the Models with the train data. Additionally, we also realized that APR_DRG_Desc is a much more clinical way of naming the diseases as described under CCS_Dx_Desc. So in the initial plots we first removed CCS_Dx_Desc to see if there was any significant relationship and then we removed APR_DRG_Desc, because it wasn't showing any significant relationship either. Both of these two Predictors were insignificant probably due to the fact that we have considered to predict the Total_Charges based on patients' data related to Respiratory diseases only. And, hence the decision to remove them from our Model consideration. Initially we thought that Payment_Typology_1 could be a significant Predictor as well, but as we were building the Models, we realized that they are not significant probably due to the fact that most of the Insurance companies are more or less following the same market regulations and policy laid down by the Government, while charging for patients' respiratory diseases to ensure there is no market monopoly. 
+Apparently Model 13 is our best Model with the least MAD of about **5752.152**! We assumed that the Total_Charges are dependent on the Length_of_Stay and the Health_Service_Area as well so we wanted to see the interaction amongst these terms. We decided to see the interactions amongst these terms mainly due to the fact that from our EDA over the data we saw that Total_Charges showed significant relationship with the patients' Length_of_Stay along with the Health_Service_Area where the services are being provided. The other interactive terms that we wanted to see is the type of Insurance (Payment_Typology_1) and the reason for Admission (Type_of_Admission) as we can see that often Emergency units charge more than the Normal OPD Clinics. We haven't considered race, ethnicity mainly because our Model was not showing them to be significant while we were building the Models with the train data. Additionally, we also realized that APR_DRG_Desc is a much more clinical way of naming the diseases as described under CCS_Dx_Desc. So in the initial plots we first removed CCS_Dx_Desc to see if there was any significant relationship and then we removed APR_DRG_Desc, because it wasn't showing any significant relationship either. Both of these two Predictors were insignificant probably due to the fact that we have considered to predict the Total_Charges based on patients' data related to Respiratory diseases only. And, hence the decision to remove them from our Model consideration. Initially we thought that Payment_Typology_1 could be a significant Predictor as well, but as we were building the Models, we realized that they are not significant probably due to the fact that most of the Insurance companies are more or less following the same market regulations and policy laid down by the Government, while charging for patients' respiratory diseases to ensure there is no market monopoly. 
 
 
 It will be interesting to compare the best models that everyone finds.
